@@ -66,9 +66,11 @@ def download():
     RAW.mkdir(parents=True, exist_ok=True)
     for ws, proj, ver in SOURCES:
         dest = RAW / proj
-        if dest.exists():
+        if (dest / "data.yaml").exists():
             print(f"skip {proj} (already downloaded)")
             continue
+        if dest.exists():
+            shutil.rmtree(dest)          # remove a half-finished download
         print(f"downloading {ws}/{proj} v{ver}")
         rf.workspace(ws).project(proj).version(ver).download("yolov8", location=str(dest))
 
@@ -101,7 +103,7 @@ def merge():
                 continue
             (OUT / split / "images").mkdir(parents=True, exist_ok=True)
             (OUT / split / "labels").mkdir(parents=True, exist_ok=True)
-            for lbl in (split_dir / "labels").glob("*.txt"):
+            for n, lbl in enumerate(sorted((split_dir / "labels").glob("*.txt"))):
                 lines = []
                 for row in lbl.read_text().splitlines():
                     parts = row.split()
@@ -114,7 +116,7 @@ def merge():
                 img = next((split_dir / "images").glob(lbl.stem + ".*"), None)
                 if img is None:
                     continue
-                stem = f"{ds.name}__{lbl.stem}"
+                stem = f"{ds.name[:20]}_{split}_{n:06d}"   # short names avoid Windows path limits
                 shutil.copy(img, OUT / split / "images" / f"{stem}{img.suffix}")
                 (OUT / split / "labels" / f"{stem}.txt").write_text("\n".join(lines))
 
