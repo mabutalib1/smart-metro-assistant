@@ -20,3 +20,6 @@ models/*
 *.mp4
 *.avi
 *.mov
+
+# test clips
+data/test_clips/
