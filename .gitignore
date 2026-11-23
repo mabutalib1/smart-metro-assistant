@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# data and outputs
+data/raw/
+data/merged/
+runs/
+outputs/*
+!outputs/.gitkeep
+
+# model weights
+*.pt
+models/*
+!models/.gitkeep
+
+# media
+*.mp4
+*.avi
+*.mov

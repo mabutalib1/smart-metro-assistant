@@ -1,0 +1,43 @@
+# Smart Metro Station Assistant - runtime configuration
+
+camera:
+  id: cam_01
+  gate: "Gate 3"          # shown in every alert from this camera
+  source: 0               # webcam index, video file path, or RTSP URL
+
+models:
+  pose: yolo11n-pose.pt   # pretrained, downloaded automatically
+  aids: null              # path to trained mobility-aid detector, e.g. models/aids_best.pt
+  tracker: bytetrack.yaml
+  person_conf: 0.4
+  aid_conf: 0.35
+  device: null            # null = auto, or "cpu", "0" for first GPU
+
+# Restricted zone polygon in pixel coordinates of the camera frame.
+# Use tools/draw_zone.py to pick points on a frame from your camera.
+zones:
+  restricted:
+    - [0, 600]
+    - [1280, 600]
+    - [1280, 720]
+    - [0, 720]
+
+rules:
+  zone:
+    min_frames: 5          # frames inside the zone before alerting
+  fall:
+    window_sec: 1.0        # time window to measure the hip drop
+    drop_ratio: 0.30       # hip drop as a fraction of standing body height
+    torso_angle_deg: 55    # torso angle from vertical that counts as "down"
+    down_sec: 1.5          # must stay down this long to confirm a fall
+  aid:
+    min_frames: 8          # frames an aid must stay linked to a person
+    min_overlap: 0.3       # fraction of the aid box inside the person box
+  keypoint_conf: 0.3       # ignore keypoints below this confidence
+
+alerts:
+  cooldown_sec: 30         # same person + same event will not re-alert inside this time
+  log_file: outputs/alerts.jsonl
+  save_snapshots: true
+  snapshot_dir: outputs/snapshots
+  blur_faces: true         # blur faces in saved snapshots
