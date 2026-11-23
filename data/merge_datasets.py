@@ -35,6 +35,9 @@ CLASS_MAP = {
     "wheel chair": "wheelchair",
     "push_wheelchair": "wheelchair",
     "peoplewithwheelchair": "wheelchair",
+    "person_wheelchair": "wheelchair",
+    "person_crutches": "crutches",
+    "person_walking_frame": "walking_frame",
     "crutches": "crutches",
     "crutch": "crutches",
     "walking_frame": "walking_frame",
@@ -47,6 +50,11 @@ CLASS_MAP = {
     "white_canes": "white_cane",
     "white-canes": "white_cane",
     "white-cane": "white_cane",
+}
+
+# Class names that only make sense inside one dataset: dataset folder -> {source name: target}
+DATASET_CLASS_MAP = {
+    "whitecanes": {"0": "white_cane"},     # single unnamed class in a white cane dataset
 }
 
 # (workspace, project, version). version None = latest published version.
@@ -117,7 +125,8 @@ def merge():
             names = [names[k] for k in sorted(names)]
         remap = {}
         for i, n in enumerate(names):
-            target = CLASS_MAP.get(str(n).strip().lower())
+            key = str(n).strip().lower()
+            target = DATASET_CLASS_MAP.get(ds.name, {}).get(key) or CLASS_MAP.get(key)
             if target:
                 remap[i] = TARGET.index(target)
             else:
