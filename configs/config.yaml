@@ -7,37 +7,68 @@ camera:
 
 models:
   pose: yolo11n-pose.pt   # pretrained, downloaded automatically
-  aids: null              # path to trained mobility-aid detector, e.g. models/aids_best.pt
+  aids: null              # trained mobility-aid detector, e.g. models/aids_best.pt
   tracker: bytetrack.yaml
   person_conf: 0.4
   aid_conf: 0.35
-  device: null            # null = auto, or "cpu", "0" for first GPU
+  device: null            # null = auto, "cpu", or "0" for the first GPU
 
-# Restricted zone polygon in pixel coordinates of the camera frame.
-# Use tools/draw_zone.py to pick points on a frame from your camera.
+# Zones in pixel coordinates of this camera's frame.
+# Draw them with: python tools/draw_zone.py --source <video> --name "..." --type <type>
+#   restricted  anyone inside raises a high alert (track area, staff-only door)
+#   hazard      white cane users inside or walking toward it raise a high alert (stairs, platform edge)
+#   barrier     wheelchair / walking frame users inside raise a medium alert (escalator, narrow gate)
+#   seating     people waiting here are not reported as stuck (benches, waiting area)
 zones:
-  restricted:
-    - [0, 600]
-    - [1280, 600]
-    - [1280, 720]
-    - [0, 720]
+  - name: "Restricted area"
+    type: restricted
+    points: [[0, 600], [1280, 600], [1280, 720], [0, 720]]
 
 rules:
-  zone:
-    min_frames: 5          # frames inside the zone before alerting
-  fall:
-    window_sec: 1.0        # time window to measure the hip drop
-    drop_ratio: 0.30       # hip drop as a fraction of standing body height
-    torso_angle_deg: 55    # torso angle from vertical that counts as "down"
-    down_sec: 1.5          # must stay down this long to confirm a fall
+  keypoint_conf: 0.3
+
   aid:
-    min_frames: 8          # frames an aid must stay linked to a person
-    min_overlap: 0.3       # fraction of the aid box inside the person box
-  keypoint_conf: 0.3       # ignore keypoints below this confidence
+    confirm_sec: 1.0      # aid must stay linked to the person this long
+    gap_sec: 1.0          # detector may miss the aid for this long without resetting
+    min_overlap: 0.3      # fraction of the aid box inside the (slightly enlarged) person box
+
+  zones:
+    restricted_sec: 0.5
+    barrier_sec: 1.0
+    barrier_aids: [wheelchair, walking_frame]
+    hazard_sec: 0.3
+    hazard_aids: [white_cane]
+    hazard_approach: 1.5  # alert when within this many body heights and moving closer
+
+  fall:
+    window_sec: 1.0       # time window to measure the hip drop
+    drop_ratio: 0.30      # hip drop as a fraction of standing body height
+    torso_angle_deg: 55   # torso angle from vertical that counts as down
+    down_sec: 1.5         # must stay down this long to confirm
+
+  help_request:
+    enabled: true
+    aid_users_only: false # true = only people with a detected mobility aid
+    hold_sec: 2.0         # hand held above the head this long
+
+  stuck:                  # aid users only
+    window_sec: 25
+    max_move: 0.35        # body heights
+
+  disoriented:            # aid users only
+    window_sec: 10
+    min_path: 1.5         # body heights walked inside the window
+    tortuosity: 3.0       # path length / straight-line distance
+    max_speed: 0.6        # body heights per second
+
+  helper:                 # someone staying next to an aid user = being helped
+    distance: 0.8         # body heights
+    hold_sec: 8
+    release_sec: 3
 
 alerts:
-  cooldown_sec: 30         # same person + same event will not re-alert inside this time
+  cooldown_sec: 30        # same person + same event will not re-alert inside this time
   log_file: outputs/alerts.jsonl
   save_snapshots: true
   snapshot_dir: outputs/snapshots
-  blur_faces: true         # blur faces in saved snapshots
+  blur_faces: true        # blur the head region in saved snapshots
