@@ -137,8 +137,9 @@ def merge():
         for split_dir in ds.iterdir():
             if split_dir.name not in SPLITS or not (split_dir / "labels").exists():
                 continue
+            by_stem = {f.stem: f for f in (split_dir / "images").iterdir()}   # index once: fast lookups
             for lbl in sorted((split_dir / "labels").glob("*.txt")):
-                img = next((split_dir / "images").glob(lbl.stem + ".*"), None)
+                img = by_stem.get(lbl.stem)
                 if img is None:
                     continue
                 lines = []
