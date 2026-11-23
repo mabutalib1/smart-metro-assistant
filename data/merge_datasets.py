@@ -47,9 +47,9 @@ CLASS_MAP = {
 
 # (workspace, project, version)
 SOURCES = [
-    ("mobilityaids", "wheelchair-detection-hh3io", 1),
-    ("disable-people-on-crutches", "mobility-aids-jcnno-1cyew", 1),
-    ("elishian", "dpi_cane", 1),
+    ("mobilityaids", "wheelchair-detection-hh3io", 7),
+    # ("disable-people-on-crutches", "mobility-aids-jcnno-1cyew", 1),
+    ("elishian", "dpi_cane", 3),
     ("visionaid-7mkcb", "blind-guide-ai", 1),
 ]
 
